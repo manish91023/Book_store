@@ -35,7 +35,7 @@ await mongoose.connect(DBURI)
   
 
 app.use(cors({
-    origin: "http://localhost:5173",
+    origin: "https://bespoke-yeot-5d507b.netlify.app",
     credentials: true,
         
 
