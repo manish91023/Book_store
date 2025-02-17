@@ -1,16 +1,19 @@
-import { Order } from "../models/order.model.js";
-import { Purchase } from "../Models/purchase.model.js";
+import { Order } from "../Morder.model.js";
+import {Purchase,Course} from "../Models/purchase.model.js"
 
 export const orderData = async (req, res) => {
   const order = req.body;
   try {
     const orderInfo = await Order.create(order);
-    console.log(orderInfo);
+   
     const userId = orderInfo?.userId;
     const courseId = orderInfo?.courseId;
 
-
- const amount = course.price;
+    const course = await Course.findById(courseId);
+    if (!course) {
+      return res.status(404).json({ errors: "Course not found" });
+    }
+   const amount = course.price;
     const paymentIntent = await stripe.paymentIntents.create({
       amount: amount,
       currency: "usd",
