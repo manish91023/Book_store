@@ -1,5 +1,7 @@
-import { Order } from "../Morder.model.js";
-import {Purchase,Course} from "../Models/purchase.model.js"
+import { Order } from "../Models/order.model.js";
+import {Purchase} from "../Models/purchase.model.js"
+import {Course} from "../Models/course.model.js"
+
 
 export const orderData = async (req, res) => {
   const order = req.body;
@@ -8,6 +10,7 @@ export const orderData = async (req, res) => {
    
     const userId = orderInfo?.userId;
     const courseId = orderInfo?.courseId;
+    
 
     const course = await Course.findById(courseId);
     if (!course) {
