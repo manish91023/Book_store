@@ -1,9 +1,10 @@
 import { z } from "zod";
 import bcrypt from "bcrypt"
 import { User } from "../Models/user.model.js";
-import { generateUserToken} from "../utils/jwt.js"
+import {generateAdminToken} from "../utils/jwt.js"
 import { Course } from "../Models/course.model.js";
 import { Purchase } from "../Models/purchase.model.js";
+import { Admin } from "../Models/admin.model.js";
 
 
 
@@ -21,7 +22,7 @@ const userLoginSchema = z.object({
 
 
   
-export const userSignup = async (req, res) => {
+export const adminSignup = async (req, res) => {
     
     try {
         // ✅ Validate Request Body using Zod
@@ -33,7 +34,7 @@ export const userSignup = async (req, res) => {
         const {firstName,lastName,email,password} = parsedData.data;
 
         // ✅ Check if the email already exists
-        const existingUser = await User.findOne({ email });
+        const existingUser = await Admin.findOne({ email });
         if (existingUser) {
             return res.status(400).json({ error: "Email already registered" });
         }
@@ -42,9 +43,9 @@ export const userSignup = async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // ✅ Save new user to the database
-        const user = await User.create({ firstName,lastName, email, password: hashedPassword });
+        const user = await Admin.create({ firstName,lastName, email, password: hashedPassword });
 
-        res.status(201).json({ message: "User registered successfully", userId: user._id });
+        res.status(201).json({ message: "admin registered successfully", userId: user._id });
 
     } catch (error) {
         console.error(error);
@@ -52,7 +53,7 @@ export const userSignup = async (req, res) => {
     }
 };
 
-export const userLogin=async(req,res)=>{
+export const adminLogin=async(req,res)=>{
     try {
         // ✅ Validate Request Body using Zod
         const parsedData = userLoginSchema.safeParse(req.body);
@@ -68,19 +69,19 @@ export const userLogin=async(req,res)=>{
         const { email, password } = parsedData.data;
 
         // ✅ Check if user exists
-        const user = await User.findOne({ email });
-        if (!user) {
+        const admin = await Admin.findOne({ email });
+        if (!admin) {
             return res.status(400).json({ error: "Invalid email or password" });
         }
 
         // ✅ Compare passwords
-        const isMatch = await bcrypt.compare(password, user.password);
+        const isMatch = await bcrypt.compare(password, admin.password);
         if (!isMatch) {
             return res.status(400).json({ error: "Invalid email or password" });
         }
 
         // ✅ Generate JWT token
-        const token = generateUserToken(user._id);
+        const token = generateAdminToken(admin._id);
 
         // ✅ Store token in HTTP-Only Cookie
         res.cookie("jwt", token, {
@@ -90,7 +91,7 @@ export const userLogin=async(req,res)=>{
             expires:new Date(Date.now()+24 * 60 * 60 * 1000)  // 1 days
         });
 
-        res.status(200).json({ message: "Login successful",token,user });
+        res.status(200).json({ message: "Login successful",token,admin });
 
     } catch (error) {
         console.error(error);
@@ -98,28 +99,12 @@ export const userLogin=async(req,res)=>{
     }
 }
 
-export const userLogout=(req,res)=>{
+export const adminLogout=(req,res)=>{
     try {
         res.clearCookie("jwt")
-        res.status(200).send({message:"user logout successfully"})
+        res.status(200).send({message:"admin logout successfully"})
     } catch (error) {
         res.status(400).send({error:"error occured while logout"})
     }
-}
+} 
 
-export const purchases=async(req,res)=>{
-    const {userId}=req;
-    try {
-        const purchase=await Purchase.find({userId});
-        let purchaseCourseId=[]
-        for(let i=0;i<purchase.length;i++){
-            purchaseCourseId.push(purchase[i].courseId)
-            
-        }
-        const courseData=await Course.find({_id:{$in:purchaseCourseId}})
-        return res.status(200).send({purchase,courseData})
-    } catch (error) {
-        res.status(500).send({error:"Error in purchases"})
-        console.log(error)
-    }
-}
