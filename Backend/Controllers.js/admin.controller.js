@@ -1,5 +1,5 @@
 import { z } from "zod";
-import bcrypt from "bcrypt"
+import bcrypt from "bcryptjs"
 import { User } from "../Models/user.model.js";
 import {generateAdminToken} from "../utils/jwt.js"
 import { Course } from "../Models/course.model.js";
